@@ -262,6 +262,7 @@ if __name__ == '__main__':
     # Time to get the photos
     inodes = {}
     for (url , dir) in urls:
+        pic_idx = 0
         # Create the directory
         try:
             os.makedirs(dir)
@@ -296,7 +297,8 @@ if __name__ == '__main__':
                 photoid = photo.getAttribute("id")
 
                 # The target
-                target = dir + "/" + photoid + ".jpg"
+                target = dir + "/" + ("%04d" % pic_idx) + "_" + photoid + ".jpg"
+                pic_idx += 1
 
                 # Skip files that exist
                 if os.access(target, os.R_OK):
