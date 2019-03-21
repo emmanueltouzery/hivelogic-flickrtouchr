@@ -262,6 +262,7 @@ if __name__ == '__main__':
     # Time to get the photos
     inodes = {}
     for (url , dir) in urls:
+        pic_idx_check = 0
         pic_idx = 0
         # Create the directory
         try:
@@ -290,20 +291,37 @@ if __name__ == '__main__':
             # Get the total
             pages = int(dom.getElementsByTagName("photo")[0].parentNode.getAttribute("pages"))
 
-            # Grab the photos
-            for photo in dom.getElementsByTagName("photo"):
-                # Tell the user we're grabbing the file
-                print photo.getAttribute("title").encode("utf8") + " ... in set ... " + dir
+            elements = dom.getElementsByTagName("photo")
 
+            for photo in elements:
                 # Grab the id
                 photoid = photo.getAttribute("id")
 
                 existing_file_list = filter(lambda fname: photoid in fname, existing_files)
                 if (len(existing_file_list) > 0):
                     existing_index = existing_file_list[0].split("_")[0]
-                    if existing_index != ("%04d" % pic_idx):
-                        print "Detected pictures reorder for folder %s. Please remove the contents of the folder and re-run the sync!" % (dir)
-                        sys.exit(1)
+                    if existing_index != ("%04d" % pic_idx_check):
+                        print "existing_index: %s" % existing_index
+                        print "expected: %s" % ("%04d" % pic_idx_check)
+                        if page == 1:
+                            for file in existing_files:
+                                os.remove(dir + "/" + file)
+                            print "Detected pictures reorder for folder %s. Removed the existing pictures, proceeding." % (dir)
+                            break
+                        else:
+                            print "Detected pictures reorder for folder %s. Please remove the directory and re-run." % (dir)
+                            sys.exit(1)
+                pic_idx_check += 1
+
+
+            # Grab the photos
+            for photo in elements:
+
+                # Grab the id
+                photoid = photo.getAttribute("id")
+
+                # Tell the user we're grabbing the file
+                print photo.getAttribute("title").encode("utf8") + " ... in set ... " + dir
 
                 # The target
                 target = dir + "/" + ("%04d" % pic_idx) + "_" + photoid + ".jpg"
