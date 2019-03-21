@@ -191,8 +191,8 @@ def getphoto(id, token, filename):
         fh.close()
 
         return filename
-    except:
-        print "Failed to retrieve photo id " + id
+    except Exception as e:
+        print "Failed to retrieve photo id " + id + " " + str(e)
     
 ######## Main Application ##########
 if __name__ == '__main__':
@@ -269,6 +269,8 @@ if __name__ == '__main__':
         except:
             pass
 
+        existing_files = os.listdir(dir)
+
         # Get 500 results per page
         url += "&per_page=500"
         pages = page = 1
@@ -296,11 +298,19 @@ if __name__ == '__main__':
                 # Grab the id
                 photoid = photo.getAttribute("id")
 
+                existing_file_list = filter(lambda fname: photoid in fname, existing_files)
+                if (len(existing_file_list) > 0):
+                    existing_index = existing_file_list[0].split("_")[0]
+                    if existing_index != ("%04d" % pic_idx):
+                        print "Detected pictures reorder for folder %s. Please remove the contents of the folder and re-run the sync!" % (dir)
+                        sys.exit(1)
+
                 # The target
                 target = dir + "/" + ("%04d" % pic_idx) + "_" + photoid + ".jpg"
                 pic_idx += 1
 
                 # Skip files that exist
+                # TODO check file size >0 in case of ctrl-c during fetching
                 if os.access(target, os.R_OK):
                     inodes[photoid] = target
                     continue
